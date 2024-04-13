@@ -59,5 +59,5 @@ function clientPlayerLocationEvent(socket, data){
     if (typeof pindex == 'undefined') return;
     players[pindex].x = data.pos.x
     players[pindex].y = data.pos.y
-    socket.send(JSON.stringify({message_code: 'PLAYERS_UPDATE', players}))
+    socket.send(JSON.stringify({message_code: 'PLAYERS_UPDATE', players: players}))
 }
