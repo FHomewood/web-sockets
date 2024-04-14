@@ -56,6 +56,8 @@ let socket = undefined;
 let id = undefined;
 let world_map = undefined;
 
+let gridSize = 20;
+
 let pos = { x: 0, y: 0 };
 let rot = 45;
 let col = { r: 97, g: 59, b: 48, a: 1 };
@@ -90,11 +92,11 @@ document.addEventListener('keyup', function (event) {
 function createPixelElement(position) {
     let element = document.createElement('div')
 
-    element.style.width = '10px'
-    element.style.height = '10px'
+    element.style.width = `${gridSize}px`;
+    element.style.height = `${gridSize}px`;
     element.style.position = 'absolute';
-    element.style.left = `${position.x * 10}px`;
-    element.style.top = `${position.y * 10}px`;
+    element.style.left = `${position.x * gridSize}px`;
+    element.style.top = `${position.y * gridSize}px`;
     return element
 }
 
@@ -112,8 +114,8 @@ function drawDwarves() {
 }
 function drawWorld(mapArray) {
     const canv = document.createElement('canvas');
-    canv.width = mapArray[0].length * 10;
-    canv.height= mapArray.length * 10;
+    canv.width = mapArray[0].length * gridSize;
+    canv.height= mapArray.length * gridSize;
     const ctx = canv.getContext('2d');
     for (let i = 0; i < mapArray.length; i++) {
         for (let j = 0; j < mapArray[i].length; j++) {
@@ -128,22 +130,22 @@ function drawWorldTile(context, val, i, j) {
         case 0:
             let grass_col = { r: 80, g: 140 + 12 * Math.random(), b: 80 + 6 * Math.random(), a: 1 };
             context.fillStyle = `rgba(${grass_col.r}, ${grass_col.g}, ${grass_col.b}, ${grass_col.a})`;
-            context.fillRect(i*10,j*10,10,10)
+            context.fillRect(i*gridSize,j*gridSize,gridSize,gridSize)
             break;
         case 1:
             let sand_col = { r: 140 + 4 * Math.random(), g: 140 + 4 * Math.random(), b: 80, a: 1 };
             context.fillStyle = `rgba(${sand_col.r}, ${sand_col.g}, ${sand_col.b}, ${sand_col.a})`;
-            context.fillRect(i*10,j*10,10,10)
+            context.fillRect(i*gridSize,j*gridSize,gridSize,gridSize)
             break;
         case 2:
             let shallow_col = { r: 100 + 3 * Math.random(), g: 120 + 10 * Math.random(), b: 180, a: 1 };
             context.fillStyle = `rgba(${shallow_col.r}, ${shallow_col.g}, ${shallow_col.b}, ${shallow_col.a})`;
-            context.fillRect(i*10,j*10,10,10)
+            context.fillRect(i*gridSize,j*gridSize,gridSize,gridSize)
             break;
         case 3:
             let deep_col = { r: 80 + 3 * Math.random(), g: 80 + 10 * Math.random(), b: 140, a: 1 };
             context.fillStyle = `rgba(${deep_col.r}, ${deep_col.g}, ${deep_col.b}, ${deep_col.a})`;
-            context.fillRect(i*10,j*10,10,10)
+            context.fillRect(i*gridSize,j*gridSize,gridSize,gridSize)
             break;
         default:
             break;
@@ -155,10 +157,10 @@ function update() {
     let worldView = document.getElementById('world-view')
     let box = document.getElementById('world-box');
 
-    worldView.style.transform = `Translate(${-pos.x * 10 + box.clientWidth / 2}px, ${-pos.y * 10 + box.clientHeight / 2}px)`
+    worldView.style.transform = `Translate(${-pos.x * gridSize + box.clientWidth / 2}px, ${-pos.y * gridSize + box.clientHeight / 2}px)`
 
-    el.style.left = `${pos.x * 10}px`;
-    el.style.top = `${pos.y * 10}px`;
+    el.style.left = `${pos.x * gridSize}px`;
+    el.style.top = `${pos.y * gridSize}px`;
     el.style.transform = `rotate(${rot}deg)`
 
     drawDwarves();
