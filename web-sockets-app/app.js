@@ -131,8 +131,18 @@ function drawWorldTile(context, val, i, j) {
             context.fillRect(i*10,j*10,10,10)
             break;
         case 1:
-            let water_col = { r: 80 + 3 * Math.random(), g: 80 + 10 * Math.random(), b: 140, a: 1 };
-            context.fillStyle = `rgba(${water_col.r}, ${water_col.g}, ${water_col.b}, ${water_col.a})`;
+            let sand_col = { r: 140 + 4 * Math.random(), g: 140 + 4 * Math.random(), b: 80, a: 1 };
+            context.fillStyle = `rgba(${sand_col.r}, ${sand_col.g}, ${sand_col.b}, ${sand_col.a})`;
+            context.fillRect(i*10,j*10,10,10)
+            break;
+        case 2:
+            let shallow_col = { r: 100 + 3 * Math.random(), g: 120 + 10 * Math.random(), b: 180, a: 1 };
+            context.fillStyle = `rgba(${shallow_col.r}, ${shallow_col.g}, ${shallow_col.b}, ${shallow_col.a})`;
+            context.fillRect(i*10,j*10,10,10)
+            break;
+        case 3:
+            let deep_col = { r: 80 + 3 * Math.random(), g: 80 + 10 * Math.random(), b: 140, a: 1 };
+            context.fillStyle = `rgba(${deep_col.r}, ${deep_col.g}, ${deep_col.b}, ${deep_col.a})`;
             context.fillRect(i*10,j*10,10,10)
             break;
         default:

@@ -81,7 +81,9 @@ function buildWorldMap(width, height){
             land_height += Math.exp(-Math.pow((i-islands[2][0])/(2*30),2))
             land_height += Math.exp(-Math.pow((j-islands[2][1])/(2*30),2))
             if (land_height > 1.5) array[i].push(0)
-            else array[i].push(1)
+            else if (land_height > 1.2) array[i].push(1)
+            else if (land_height > 1) array[i].push(2)
+            else array[i].push(3)
         }
     }
     return array
