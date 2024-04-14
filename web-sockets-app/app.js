@@ -1,10 +1,3 @@
-class Dwarf {
-    constructor(client_id, x, y) {
-        this.id = id;
-        this.pos = { x: x, y: y };
-    }
-}
-
 function connect(ip, port) {
     socket = new WebSocket(`ws://${ip}:${port}`);
 
