@@ -118,28 +118,34 @@ function drawDwarves() {
 
 }
 function drawWorld(mapArray) {
+    const canv = document.createElement('canvas');
+    canv.width = mapArray[0].length * 10;
+    canv.height= mapArray.length * 10;
+    const ctx = canv.getContext('2d');
     for (let i = 0; i < mapArray.length; i++) {
         for (let j = 0; j < mapArray[i].length; j++) {
-            drawWorldTile(mapArray, i, j)
+            drawWorldTile(ctx, mapArray[i][j], i, j);
         }
     }
+    document.getElementById('world-container').appendChild(canv);
 }
 
-function drawWorldTile(mapArray, i, j) {
-    let w_el = createPixelElement(position = { x: i, y: j })
-    switch (mapArray[i][j]) {
+function drawWorldTile(context, val, i, j) {
+    switch (val) {
         case 0:
             let grass_col = { r: 80, g: 140 + 12 * Math.random(), b: 80 + 6 * Math.random(), a: 1 };
-            w_el.style.backgroundColor = `rgba(${grass_col.r}, ${grass_col.g}, ${grass_col.b}, ${grass_col.a})`;
+            context.fillStyle = `rgba(${grass_col.r}, ${grass_col.g}, ${grass_col.b}, ${grass_col.a})`;
+            context.fillRect(i*10,j*10,10,10)
             break;
         case 1:
             let water_col = { r: 80 + 3 * Math.random(), g: 80 + 10 * Math.random(), b: 140, a: 1 };
-            w_el.style.backgroundColor = `rgba(${water_col.r}, ${water_col.g}, ${water_col.b}, ${water_col.a})`;
+            context.fillStyle = `rgba(${water_col.r}, ${water_col.g}, ${water_col.b}, ${water_col.a})`;
+            context.fillRect(i*10,j*10,10,10)
             break;
         default:
             break;
     }
-    document.getElementById('world-container').appendChild(w_el);
+    return context;
 }
 
 function update() {
