@@ -1,11 +1,11 @@
-class Dwarf{
-    constructor(client_id, x, y){
+class Dwarf {
+    constructor(client_id, x, y) {
         this.id = id;
-        this.pos = {x: x, y: y};
+        this.pos = { x: x, y: y };
     }
 }
 
-function connect(ip, port){
+function connect(ip, port) {
     const socket = new WebSocket(`ws://${ip}:${port}`);
     console.log('| CLIENT |', 'socket created')
 
@@ -15,6 +15,9 @@ function connect(ip, port){
         switch (dict.message_code) {
             case 'NEW_CLIENT':
                 id = dict.assigned_id;
+                world_map = dict.world_map;
+                pos = { x: Math.round(world_map[0].length / 2), y: Math.round(world_map.length / 2) }
+                drawWorld(dict.world_map);
                 break;
             case 'PLAYERS_UPDATE':
                 let new_dwarves = {}
@@ -24,9 +27,9 @@ function connect(ip, port){
                     else {
                         let dwarf = {}
                         dwarf[`${player.id}`] = new Dwarf(
-                            client_id=player.id,
-                            x= player.x,
-                            y=player.y
+                            client_id = player.id,
+                            x = player.x,
+                            y = player.y
                         )
                         Object.assign(new_dwarves, dwarf);
                     }
@@ -40,68 +43,112 @@ function connect(ip, port){
     };
 
     window.onbeforeunload = ({ event }) => {
-        socket.send(JSON.stringify({message_code: 'EXIT', client_id: id}))
+        socket.send(JSON.stringify({ message_code: 'EXIT', client_id: id }))
     }
     window.onabort = ({ event }) => {
-        socket.send(JSON.stringify({message_code: 'EXIT', client_id: id}))
+        socket.send(JSON.stringify({ message_code: 'EXIT', client_id: id }))
     }
     function informServer() {
         // console.log('| SEND |', JSON.stringify({message_code: 'PLAYER_LOC', client_id: id, pos: pos}))
-        socket.send(JSON.stringify({message_code: 'PLAYER_LOC', client_id: id, pos: pos}));
+        socket.send(JSON.stringify({ message_code: 'PLAYER_LOC', client_id: id, pos: pos }));
     }
-    setInterval(informServer, 30);
+    setInterval(informServer, 100);
+    setInterval(update, 50);
 }
 
 
-let socket = undefined;  
+let socket = undefined;
 let id = undefined;
+let world_map = undefined;
 
-let pos = {x: 0, y: 0};
-let col = {r: 128, g: 255, b: 128, a: 1}
+let pos = { x: 0, y: 0 };
+let rot = 45;
+let col = { r: 97, g: 59, b: 48, a: 1 };
 let el = createPixelElement(pos.x, pos.y)
 el.className = 'player'
-el.style.backgroundColor=`rgba(${col.r}, ${col.g}, ${col.b}, ${col.a})`;
+el.style.backgroundColor = `rgba(${col.r}, ${col.g}, ${col.b}, ${col.a})`;
+el.style.borderRadius = `0 100% 100% 100%`
 document.getElementById('player-container').appendChild(el)
 
 dwarves = {}
 
 
-document.addEventListener('keydown', function(event) {
-    if (event.key == 'ArrowRight') pos.x++;
-    if (event.key == 'ArrowLeft') pos.x--;
-    if (event.key == 'ArrowUp') pos.y--;
-    if (event.key == 'ArrowDown') pos.y++;
+document.addEventListener('keyup', function (event) {
+    if (event.key == 'ArrowRight' && pos.x < world_map[0].length - 1) {
+        pos.x++;
+        rot = 135;
+    }
+    if (event.key == 'ArrowLeft' && pos.x > 0) {
+        pos.x--;
+        rot = 315;
+    }
+    if (event.key == 'ArrowUp' && pos.y > 0) {
+        pos.y--;
+        rot = 45;
+    }
+    if (event.key == 'ArrowDown' && pos.y < world_map.length - 1) {
+        pos.y++;
+        rot = 225;
+    }
 });
 
-function createPixelElement(position, color){
+function createPixelElement(position) {
     let element = document.createElement('div')
-    
-    element.style.width='10px'
-    element.style.height='10px'
+
+    element.style.width = '10px'
+    element.style.height = '10px'
     element.style.position = 'absolute';
     element.style.left = `${position.x * 10}px`;
     element.style.top = `${position.y * 10}px`;
     return element
 }
 
-function drawDwarves(){
+function drawDwarves() {
     document.getElementById('dwarf-container').innerHTML = null
-    let d_col = {r: 64, g: 128, b:64, a:1};
+    let d_col = { r: 137, g: 99, b: 88, a: 1 };
     for (let i = 0; i < Object.keys(dwarves).length; i++) {
         let key = Object.keys(dwarves)[i]
-        console.log(`drawing dwarf ${key}`)
         let d_el = createPixelElement(dwarves[key].pos)
         d_el.style.backgroundColor = `rgba(${d_col.r}, ${d_col.g}, ${d_col.b}, ${d_col.a})`;
+        d_el.style.borderRadius = "100%";
         document.getElementById('dwarf-container').appendChild(d_el)
     }
 
 }
+function drawWorld(mapArray) {
+    for (let i = 0; i < mapArray.length; i++) {
+        for (let j = 0; j < mapArray[i].length; j++) {
+            drawWorldTile(mapArray, i, j)
+        }
+    }
+}
+
+function drawWorldTile(mapArray, i, j) {
+    let w_el = createPixelElement(position = { x: i, y: j })
+    switch (mapArray[i][j]) {
+        case 0:
+            let grass_col = { r: 80, g: 140 + 12 * Math.random(), b: 80 + 6 * Math.random(), a: 1 };
+            w_el.style.backgroundColor = `rgba(${grass_col.r}, ${grass_col.g}, ${grass_col.b}, ${grass_col.a})`;
+            break;
+        case 1:
+            let water_col = { r: 80 + 3 * Math.random(), g: 80 + 10 * Math.random(), b: 140, a: 1 };
+            w_el.style.backgroundColor = `rgba(${water_col.r}, ${water_col.g}, ${water_col.b}, ${water_col.a})`;
+            break;
+        default:
+            break;
+    }
+    document.getElementById('world-container').appendChild(w_el);
+}
 
 function update() {
+    let worldView = document.getElementById('world-view')
+    let box = document.getElementById('world-box');
+
+    worldView.style.transform = `Translate(${-pos.x * 10 + box.clientWidth / 2}px, ${-pos.y * 10 + box.clientHeight / 2}px)`
+
     el.style.left = `${pos.x * 10}px`;
     el.style.top = `${pos.y * 10}px`;
+    el.style.transform = `rotate(${rot}deg)`
 
     drawDwarves();
 }
-
-setInterval(update, 50);

@@ -5,3 +5,18 @@ body{
     position: relative;
     margin:0;
 }
+#world-box{
+    position: relative;
+    width: 75vw;
+    height: 75vh;
+    left: 0;
+    top: 0;
+    overflow: hidden;
+    border: 2px solid #aaa;
+}
+#world-view{
+    transition: all 400ms linear;
+}
+.player{
+    transition: all 150ms ease-in-out;
+}

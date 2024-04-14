@@ -1,17 +1,23 @@
 const WebSocket = require('ws');
-
-const server = new WebSocket.Server({ port: '8080' });
-console.log('| SERVER | online on port 8080')
+const port = '8080'
+const server = new WebSocket.Server({ port: port });
+console.log('| SERVER | online on port', port)
 
 let connections = 0
 let players = []
+let world_map = buildWorldMap(200,200)
 server.on('connection', socket => {
     players.push({
         id: GeneratePlayerId(),
         x: 0,
         y: 0
     })
-    socket.send(JSON.stringify({message_code: 'NEW_CLIENT', assigned_id: players[players.length-1].id}))
+    socket.send(JSON.stringify(
+        {
+            message_code: 'NEW_CLIENT',
+            assigned_id: players[players.length-1].id,
+            world_map: world_map
+        }))
     
     console.log('| SERVER |', `${players.length} open connections`)
     socket.on('message', message => {
@@ -60,4 +66,16 @@ function clientPlayerLocationEvent(socket, data){
     players[pindex].x = data.pos.x
     players[pindex].y = data.pos.y
     socket.send(JSON.stringify({message_code: 'PLAYERS_UPDATE', players: players}))
+}
+
+function buildWorldMap(width, height){
+    array = []
+    for (let i = 0; i < width; i++) {
+        array.push([])
+        for (let j = 0; j < height; j++) {
+            array[i].push(0)
+        }
+    }
+    return array
+
 }
