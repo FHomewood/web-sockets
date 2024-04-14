@@ -89,6 +89,18 @@ document.addEventListener('keyup', function (event) {
     }
 });
 
+document.getElementById('world-box').addEventListener('click', function (event) {
+    const box = document.getElementById('world-box');
+    clickCoordX = pos.x + (event.pageX - box.clientWidth / 2) / gridSize;
+    clickCoordY = pos.y + (event.pageY - box.clientHeight / 2) / gridSize;
+    let dbox = document.getElementById('debug-box');
+    dbox.style.width = `${gridSize}px`
+    dbox.style.height = `${gridSize}px`
+    dbox.style.left = `${gridSize * Math.floor(clickCoordX)}px`
+    dbox.style.top = `${gridSize * Math.floor(clickCoordY)}px`
+
+})
+
 function createPixelElement(position) {
     let element = document.createElement('div')
 

@@ -20,3 +20,9 @@ body{
 .player{
     transition: all 150ms ease-in-out;
 }
+#debug-box{
+    width: 10px;
+    height: 10px;
+    background-color: red;
+    position: absolute;
+}

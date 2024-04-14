@@ -6,6 +6,8 @@ console.log('| SERVER | online on port', port)
 let connections = 0
 let players = []
 let world_map = buildWorldMap(200,200)
+let wall_map = buildEmptyMap(200,200)
+let structure_map = buildEmptyMap(200,200)
 server.on('connection', socket => {
     players.push({
         id: GeneratePlayerId(),
@@ -25,6 +27,7 @@ server.on('connection', socket => {
         switch (data.message_code) {
             case 'EXIT': clientExitEvent(socket, data); break;
             case 'PLAYER_LOC': clientPlayerLocationEvent(socket, data); break;
+            case 'WALL_UPDATE': clientWallUpdateEvent(socket, data); break;
         
             default:
                 break;
@@ -60,12 +63,27 @@ function clientExitEvent(socket, data){
 }
 
 function clientPlayerLocationEvent(socket, data){
-    // console.log('\n| RECIEVE |', data, '\n|  SEND   |', players)
     pindex = getPlayerIndex(data.client_id)
     if (typeof pindex == 'undefined') return;
     players[pindex].x = data.pos.x
     players[pindex].y = data.pos.y
     socket.send(JSON.stringify({message_code: 'PLAYERS_UPDATE', players: players}))
+}
+
+function clientWallUpdateEvent(socket, data){
+    
+    socket.send(JSON.stringify({message_code: 'WALLS_UPDATE', wall_map: wall_map}))
+}
+
+function buildEmptyMap(width, height){
+    array = []
+    for (let i = 0; i < width; i++){
+        array.push([]);
+        for (let j = 0; j < height; j++)
+        {
+            array.push(0);
+        }
+    }
 }
 
 function buildWorldMap(width, height){
@@ -87,5 +105,4 @@ function buildWorldMap(width, height){
         }
     }
     return array
-
 }
