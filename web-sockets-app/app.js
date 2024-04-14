@@ -85,7 +85,7 @@ function createPixelElement(position, color){
 }
 
 function drawDwarves(){
-    // document.getElementById('dwarf-container').innerHTML = null
+    document.getElementById('dwarf-container').innerHTML = null
     let d_col = {r: 64, g: 128, b:64, a:1};
     for (let i = 0; i < Object.keys(dwarves).length; i++) {
         let key = Object.keys(dwarves)[i]
