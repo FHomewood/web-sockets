@@ -6,11 +6,21 @@ class Dwarf {
 }
 
 function connect(ip, port) {
-    const socket = new WebSocket(`ws://${ip}:${port}`);
-    console.log('| CLIENT |', 'socket created')
+    socket = new WebSocket(`ws://${ip}:${port}`);
 
+    socket.addEventListener("open", (event)=>{
+        function informServer() {
+            socket.send(JSON.stringify({ message_code: 'PLAYER_LOC', client_id: id, pos: pos }));
+        }
+    
+        function loop(){
+            update()
+            informServer()
+            setTimeout(loop, 10)
+        }
+        loop()
+    })
     socket.onmessage = ({ data }) => {
-        console.log('| SERVER |', data.toString());
         let dict = JSON.parse(data.toString());
         switch (dict.message_code) {
             case 'NEW_CLIENT':
@@ -35,7 +45,6 @@ function connect(ip, port) {
                     }
                 }
                 dwarves = new_dwarves;
-                // console.log(`incoming data:\n\t${data}\ndwarves:\n\t${dwarves['0']}`)
                 break;
             default:
                 break;
@@ -48,14 +57,7 @@ function connect(ip, port) {
     window.onabort = ({ event }) => {
         socket.send(JSON.stringify({ message_code: 'EXIT', client_id: id }))
     }
-    function informServer() {
-        // console.log('| SEND |', JSON.stringify({message_code: 'PLAYER_LOC', client_id: id, pos: pos}))
-        socket.send(JSON.stringify({ message_code: 'PLAYER_LOC', client_id: id, pos: pos }));
-    }
-    setInterval(informServer, 100);
-    setInterval(update, 50);
 }
-
 
 let socket = undefined;
 let id = undefined;
