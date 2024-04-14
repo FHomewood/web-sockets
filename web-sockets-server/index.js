@@ -69,11 +69,19 @@ function clientPlayerLocationEvent(socket, data){
 }
 
 function buildWorldMap(width, height){
+    let islands = [[width/2, height/2], [Math.random()*width, Math.random()*height], [Math.random()*width, Math.random()*height]]
     array = []
     for (let i = 0; i < width; i++) {
         array.push([])
         for (let j = 0; j < height; j++) {
-            array[i].push(0)
+            let land_height = Math.exp(-Math.pow((i-islands[0][0])/(2*10),2))
+            land_height += Math.exp(-Math.pow((j-islands[0][1])/(2*10),2))
+            land_height += Math.exp(-Math.pow((i-islands[1][0])/(2*20),2))
+            land_height += Math.exp(-Math.pow((j-islands[1][1])/(2*20),2))
+            land_height += Math.exp(-Math.pow((i-islands[2][0])/(2*30),2))
+            land_height += Math.exp(-Math.pow((j-islands[2][1])/(2*30),2))
+            if (land_height > 1.5) array[i].push(0)
+            else array[i].push(1)
         }
     }
     return array
