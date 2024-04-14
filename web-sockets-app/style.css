@@ -5,11 +5,3 @@ body{
     position: relative;
     margin:0;
 }
-
-#player-container{
-}
-
-.player{
-    position: absolute;
-    color: rgba(122, 1, 255, 1)
-}

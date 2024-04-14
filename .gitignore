@@ -2,3 +2,5 @@
 **debug**
 **.env
 node_modules
+
+web-sockets-app/connect.js
