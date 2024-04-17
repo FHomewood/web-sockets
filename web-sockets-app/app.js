@@ -20,8 +20,13 @@ function connect(ip, port) {
         switch (dict.message_code) {
             case 'NEW_CLIENT':
                 id = dict.assigned_id;
+                const worldX = dict.world_map[0].length;
+                const worldY = dict.world_map.length;
                 world_map = dict.world_map;
                 wall_map = dict.wall_map;
+                r_noise = noiseMap(worldX,worldY);
+                g_noise = noiseMap(worldX,worldY);
+                b_noise = noiseMap(worldX,worldY);
                 pos = { 
                     x: Math.round(world_map[0].length / 2), 
                     y: Math.round(world_map.length / 2) 
@@ -68,6 +73,10 @@ let id = undefined;
 let world_map = undefined;
 let wall_map = undefined;
 
+let r_noise = undefined;
+let b_noise = undefined;
+let g_noise = undefined;
+
 let gridSize = 14;
 
 let pos = { x: 0, y: 0 };
@@ -109,6 +118,16 @@ document.getElementById('world-box').addEventListener('click', function (event) 
     console.log(clickCoordX, clickCoordY)
 
 })
+function noiseMap(w,h){
+    array = [];
+    for (let i = 0; i < w; i++){
+        array.push([])
+        for (let j = 0; j < h; j++){
+            array[i].push(Math.random())
+        }
+    }
+    return array
+}
 
 function createPixelElement(position) {
     let element = document.createElement('div')
@@ -147,9 +166,9 @@ function drawWalls(mapArray) {
 function drawWallTile(context, val, i, j){
     switch (val){
         case 0:   break;
-        case 1:  drawRect(context,i,j,r = 80, g = 80 + 12 * Math.random(), b = 80 + 6 * Math.random()); break;
-        case 2:  drawRect(context,i,j,r = 100, g = 100 + 12 * Math.random(), b = 100 + 6 * Math.random()); break;
-        default: drawRect(context,i,j,r = 120, g = 120 + 12 * Math.random(), b = 120 + 6 * Math.random()); break;
+        case 1:  drawRect(context,i,j,r = 80, g = 80 + 12 * g_noise[i][j], b = 80 + 6 * b_noise[i][j]); break;
+        case 2:  drawRect(context,i,j,r = 100, g = 100 + 12 * g_noise[i][j], b = 100 + 6 * b_noise[i][j]); break;
+        default: drawRect(context,i,j,r = 120, g = 120 + 12 * g_noise[i][j], b = 120 + 6 * b_noise[i][j]); break;
     }
 }
 
@@ -168,10 +187,10 @@ function drawWorld(mapArray) {
 
 function drawWorldTile(context, val, i, j) {
     switch (val) {
-        case 0: drawRect(context,i,j,r = 80, g = 140 + 12 * Math.random(), b = 80 + 6 * Math.random()); break;
-        case 1: drawRect(context,i,j,r = 140 + 4 * Math.random(), g = 140 + 4 * Math.random(), b = 80); break;
-        case 2: drawRect(context,i,j,r = 100 + 3 * Math.random(), g = 120 + 10 * Math.random(), b = 180); break;
-        case 3: drawRect(context,i,j,r = 80 + 3 * Math.random(), g = 80 + 10 * Math.random(), b = 140); break;
+        case 0: drawRect(context,i,j,r = 80, g = 140 + 12 * g_noise[i][j], b = 80 + 6 * b_noise[i][j]); break;
+        case 1: drawRect(context,i,j,r = 140 + 4 * r_noise[i][j], g = 140 + 4 * g_noise[i][j], b = 80); break;
+        case 2: drawRect(context,i,j,r = 100 + 3 * r_noise[i][j], g = 120 + 10 * g_noise[i][j], b = 180); break;
+        case 3: drawRect(context,i,j,r = 80 + 3 * r_noise[i][j], g = 80 + 10 * g_noise[i][j], b = 140); break;
     }
     return context;
 }
