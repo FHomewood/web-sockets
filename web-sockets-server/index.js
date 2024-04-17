@@ -74,12 +74,11 @@ function clientPlayerLocationEvent(socket, data){
 }
 
 function clientWallRequestEvent(socket, data){
-    if( data.wall_map == wall_map) return;
-    // socket.send(JSON.stringify({message_code: 'WALLS_UPDATE', wall_map: wall_map}));
+    socket.send(JSON.stringify({message_code: 'WALLS_UPDATE', wall_map: wall_map}));
 }
 
 function clientWallUpdateEvent(socket, data){
-    // socket.send(JSON.stringify({message_code: 'WALLS_UPDATE', wall_map: wall_map}));
+    wall_map = data.wall_map
 }
 
 function buildEmptyMap(width, height){

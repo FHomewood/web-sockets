@@ -112,9 +112,10 @@ document.addEventListener('keyup', function (event) {
 
 document.getElementById('world-box').addEventListener('click', function (event) {
     const box = document.getElementById('world-box');
-    clickCoordX = Math.floor(pos.x + (event.pageX -2 - box.clientWidth / 2) / gridSize);
-    clickCoordY = Math.floor(pos.y + (event.pageY -2 - box.clientHeight / 2) / gridSize);
+    clickCoordX = Math.floor(pos.x + (event.pageX - box.clientWidth / 2) / gridSize);
+    clickCoordY = Math.floor(pos.y + (event.pageY - box.clientHeight / 2) / gridSize);
     wall_map[clickCoordX][clickCoordY]++;
+    socket.send(JSON.stringify({ message_code: 'WALL_UPDATE', client_id: id, wall_map: wall_map}))
 })
 document.getElementById('world-box').addEventListener('mouseenter', function (event) {
     const highlight = document.getElementById('highlight-box');
@@ -125,8 +126,8 @@ document.getElementById('world-box').addEventListener('mouseenter', function (ev
 document.getElementById('world-box').addEventListener('mousemove', function (event) {
     const box = document.getElementById('world-box');
     const highlight = document.getElementById('highlight-box');
-    clickCoordX = Math.floor(pos.x + (event.pageX -2 - box.clientWidth / 2) / gridSize);
-    clickCoordY = Math.floor(pos.y + (event.pageY -2 - box.clientHeight / 2) / gridSize);
+    clickCoordX = Math.floor(pos.x + (event.pageX - box.clientWidth / 2) / gridSize);
+    clickCoordY = Math.floor(pos.y + (event.pageY - box.clientHeight / 2) / gridSize);
 
     highlight.style.left = `${clickCoordX * gridSize}px`;
     highlight.style.top = `${clickCoordY * gridSize}px`;
@@ -172,6 +173,7 @@ function drawDwarves() {
 }
 
 function drawWalls(mapArray) {
+    if (typeof mapArray == 'undefined') return;
     const canv = document.getElementById('wall-canvas');
     const ctx = canv.getContext('2d');
     for (let i = 0; i < mapArray[0].length; i++) {
@@ -191,6 +193,7 @@ function drawWallTile(context, val, i, j){
 }
 
 function drawWorld(mapArray) {
+    if (typeof mapArray == 'undefined') return;
     const canv = document.createElement('canvas');
     canv.width = mapArray[0].length * gridSize;
     canv.height= mapArray.length * gridSize;
@@ -228,5 +231,5 @@ function update() {
     el.style.transform = `rotate(${rot}deg)`
 
     drawDwarves();
-    if (wall_map) drawWalls(wall_map);
+    drawWalls(wall_map);
 }
