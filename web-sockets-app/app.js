@@ -186,9 +186,9 @@ function drawWalls(mapArray) {
 function drawWallTile(context, val, i, j){
     switch (val){
         case 0:   break;
-        case 1:  drawRect(context,i,j,r = 80, g = 80 + 12 * g_noise[i][j], b = 80 + 6 * b_noise[i][j]); break;
-        case 2:  drawRect(context,i,j,r = 100, g = 100 + 12 * g_noise[i][j], b = 100 + 6 * b_noise[i][j]); break;
-        default: drawRect(context,i,j,r = 120, g = 120 + 12 * g_noise[i][j], b = 120 + 6 * b_noise[i][j]); break;
+        case 1:  drawRect(context,i,j,r = 80, g = 80, b = 80 + 6 * b_noise[i][j]); break;
+        case 2:  drawRect(context,i,j,r = 100, g = 100, b = 100 + 6 * b_noise[i][j]); break;
+        default: drawRect(context,i,j,r = 120, g = 120, b = 120 + 6 * b_noise[i][j]); break;
     }
 }
 
