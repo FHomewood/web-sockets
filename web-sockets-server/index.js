@@ -1,25 +1,27 @@
-const WebSocket = require('ws');
-const port = '8080'
-const server = new WebSocket.Server({ port: port });
-console.log('| SERVER | online on port', port)
-
 let connections = 0
 let players = []
 let world_map = buildWorldMap(200,200)
 let wall_map = buildEmptyMap(200,200)
 let structure_map = buildEmptyMap(200,200)
+
+const WebSocket = require('ws');
+const port = '8080'
+const server = new WebSocket.Server({ port: port });
+console.log('| SERVER | online on port', port)
+
 server.on('connection', socket => {
     players.push({
         id: GeneratePlayerId(),
         x: 0,
         y: 0
-    })
+    });
     socket.send(JSON.stringify(
         {
             message_code: 'NEW_CLIENT',
             assigned_id: players[players.length-1].id,
-            world_map: world_map
-        }))
+            world_map: world_map,
+            wall_map: wall_map
+        }));
     
     console.log('| SERVER |', `${players.length} open connections`)
     socket.on('message', message => {
@@ -27,6 +29,7 @@ server.on('connection', socket => {
         switch (data.message_code) {
             case 'EXIT': clientExitEvent(socket, data); break;
             case 'PLAYER_LOC': clientPlayerLocationEvent(socket, data); break;
+            case 'WALL_REQUEST': clientWallRequestEvent(socket, data); break;
             case 'WALL_UPDATE': clientWallUpdateEvent(socket, data); break;
         
             default:
@@ -51,28 +54,32 @@ function GeneratePlayerId(){
 function getPlayerIndex(id){
     for (let i = 0; i < players.length; i++) {
         if (players[i].id == id){
-            return i
+            return i;
         }
     }
 }
 
 function clientExitEvent(socket, data){
-    console.log(`\n| TERM ${data.client_id} |`, data)
-    players.splice(getPlayerIndex(data.client_id), 1)
-    console.log('| SERVER |', `${players.length} open connections`)
+    console.log(`\n| TERM ${data.client_id} |`, data);
+    players.splice(getPlayerIndex(data.client_id), 1);
+    console.log('| SERVER |', `${players.length} open connections`);
 }
 
 function clientPlayerLocationEvent(socket, data){
-    pindex = getPlayerIndex(data.client_id)
+    pindex = getPlayerIndex(data.client_id);
     if (typeof pindex == 'undefined') return;
-    players[pindex].x = data.pos.x
-    players[pindex].y = data.pos.y
-    socket.send(JSON.stringify({message_code: 'PLAYERS_UPDATE', players: players}))
+    players[pindex].x = data.pos.x;
+    players[pindex].y = data.pos.y;
+    socket.send(JSON.stringify({message_code: 'PLAYERS_UPDATE', players: players}));
+}
+
+function clientWallRequestEvent(socket, data){
+    if( data.wall_map == wall_map) return;
+    // socket.send(JSON.stringify({message_code: 'WALLS_UPDATE', wall_map: wall_map}));
 }
 
 function clientWallUpdateEvent(socket, data){
-    
-    socket.send(JSON.stringify({message_code: 'WALLS_UPDATE', wall_map: wall_map}))
+    // socket.send(JSON.stringify({message_code: 'WALLS_UPDATE', wall_map: wall_map}));
 }
 
 function buildEmptyMap(width, height){
@@ -81,9 +88,10 @@ function buildEmptyMap(width, height){
         array.push([]);
         for (let j = 0; j < height; j++)
         {
-            array.push(0);
+            array[i].push(0);
         }
     }
+    return array;
 }
 
 function buildWorldMap(width, height){

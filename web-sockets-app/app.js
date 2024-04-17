@@ -4,6 +4,7 @@ function connect(ip, port) {
     socket.addEventListener("open", (event)=>{
         function informServer() {
             socket.send(JSON.stringify({ message_code: 'PLAYER_LOC', client_id: id, pos: pos }));
+            socket.send(JSON.stringify({ message_code: 'WALL_REQUEST', client_id: id, wall_map: wall_map}))
         }
     
         function loop(){
@@ -13,13 +14,21 @@ function connect(ip, port) {
         }
         loop()
     })
+
     socket.onmessage = ({ data }) => {
         let dict = JSON.parse(data.toString());
         switch (dict.message_code) {
             case 'NEW_CLIENT':
                 id = dict.assigned_id;
                 world_map = dict.world_map;
-                pos = { x: Math.round(world_map[0].length / 2), y: Math.round(world_map.length / 2) }
+                wall_map = dict.wall_map;
+                pos = { 
+                    x: Math.round(world_map[0].length / 2), 
+                    y: Math.round(world_map.length / 2) 
+                }
+                let wall_canv = document.getElementById('wall-canvas')
+                wall_canv.width = dict.wall_map[0].length * gridSize;
+                wall_canv.height = dict.wall_map.length * gridSize;
                 drawWorld(dict.world_map);
                 break;
             case 'PLAYERS_UPDATE':
@@ -39,7 +48,9 @@ function connect(ip, port) {
                 }
                 dwarves = new_dwarves;
                 break;
-            default:
+            case 'WALLS_UPDATE':
+                wall_map = dict.wall_map;
+                drawWalls(dict.wall_map);
                 break;
         }
     };
@@ -55,8 +66,9 @@ function connect(ip, port) {
 let socket = undefined;
 let id = undefined;
 let world_map = undefined;
+let wall_map = undefined;
 
-let gridSize = 20;
+let gridSize = 14;
 
 let pos = { x: 0, y: 0 };
 let rot = 45;
@@ -91,13 +103,10 @@ document.addEventListener('keyup', function (event) {
 
 document.getElementById('world-box').addEventListener('click', function (event) {
     const box = document.getElementById('world-box');
-    clickCoordX = pos.x + (event.pageX - box.clientWidth / 2) / gridSize;
-    clickCoordY = pos.y + (event.pageY - box.clientHeight / 2) / gridSize;
-    let dbox = document.getElementById('debug-box');
-    dbox.style.width = `${gridSize}px`
-    dbox.style.height = `${gridSize}px`
-    dbox.style.left = `${gridSize * Math.floor(clickCoordX)}px`
-    dbox.style.top = `${gridSize * Math.floor(clickCoordY)}px`
+    clickCoordX = Math.floor(pos.x + (event.pageX - box.clientWidth / 2) / gridSize);
+    clickCoordY = Math.floor(pos.y + (event.pageY - box.clientHeight / 2) / gridSize);
+    wall_map[clickCoordX][clickCoordY] += 1;
+    console.log(clickCoordX, clickCoordY)
 
 })
 
@@ -124,6 +133,26 @@ function drawDwarves() {
     }
 
 }
+
+function drawWalls(mapArray) {
+    const canv = document.getElementById('wall-canvas');
+    const ctx = canv.getContext('2d');
+    for (let i = 0; i < mapArray[0].length; i++) {
+        for (let j = 0; j < mapArray.length; j++) {
+            drawWallTile(ctx, mapArray[i][j], i, j)
+        }
+    }
+}
+
+function drawWallTile(context, val, i, j){
+    switch (val){
+        case 0:   break;
+        case 1:  drawRect(context,i,j,r = 80, g = 80 + 12 * Math.random(), b = 80 + 6 * Math.random()); break;
+        case 2:  drawRect(context,i,j,r = 100, g = 100 + 12 * Math.random(), b = 100 + 6 * Math.random()); break;
+        default: drawRect(context,i,j,r = 120, g = 120 + 12 * Math.random(), b = 120 + 6 * Math.random()); break;
+    }
+}
+
 function drawWorld(mapArray) {
     const canv = document.createElement('canvas');
     canv.width = mapArray[0].length * gridSize;
@@ -139,32 +168,18 @@ function drawWorld(mapArray) {
 
 function drawWorldTile(context, val, i, j) {
     switch (val) {
-        case 0:
-            let grass_col = { r: 80, g: 140 + 12 * Math.random(), b: 80 + 6 * Math.random(), a: 1 };
-            context.fillStyle = `rgba(${grass_col.r}, ${grass_col.g}, ${grass_col.b}, ${grass_col.a})`;
-            context.fillRect(i*gridSize,j*gridSize,gridSize,gridSize)
-            break;
-        case 1:
-            let sand_col = { r: 140 + 4 * Math.random(), g: 140 + 4 * Math.random(), b: 80, a: 1 };
-            context.fillStyle = `rgba(${sand_col.r}, ${sand_col.g}, ${sand_col.b}, ${sand_col.a})`;
-            context.fillRect(i*gridSize,j*gridSize,gridSize,gridSize)
-            break;
-        case 2:
-            let shallow_col = { r: 100 + 3 * Math.random(), g: 120 + 10 * Math.random(), b: 180, a: 1 };
-            context.fillStyle = `rgba(${shallow_col.r}, ${shallow_col.g}, ${shallow_col.b}, ${shallow_col.a})`;
-            context.fillRect(i*gridSize,j*gridSize,gridSize,gridSize)
-            break;
-        case 3:
-            let deep_col = { r: 80 + 3 * Math.random(), g: 80 + 10 * Math.random(), b: 140, a: 1 };
-            context.fillStyle = `rgba(${deep_col.r}, ${deep_col.g}, ${deep_col.b}, ${deep_col.a})`;
-            context.fillRect(i*gridSize,j*gridSize,gridSize,gridSize)
-            break;
-        default:
-            break;
+        case 0: drawRect(context,i,j,r = 80, g = 140 + 12 * Math.random(), b = 80 + 6 * Math.random()); break;
+        case 1: drawRect(context,i,j,r = 140 + 4 * Math.random(), g = 140 + 4 * Math.random(), b = 80); break;
+        case 2: drawRect(context,i,j,r = 100 + 3 * Math.random(), g = 120 + 10 * Math.random(), b = 180); break;
+        case 3: drawRect(context,i,j,r = 80 + 3 * Math.random(), g = 80 + 10 * Math.random(), b = 140); break;
     }
     return context;
 }
-
+function drawRect(canvas,i,j,r,g,b) {
+    canvas.fillStyle = `rgba(${r}, ${g}, ${b}, 1)`;
+    canvas.fillRect(i*gridSize,j*gridSize,gridSize,gridSize)
+    
+}
 function update() {
     let worldView = document.getElementById('world-view')
     let box = document.getElementById('world-box');
@@ -176,4 +191,5 @@ function update() {
     el.style.transform = `rotate(${rot}deg)`
 
     drawDwarves();
+    if (wall_map) drawWalls(wall_map);
 }

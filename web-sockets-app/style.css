@@ -5,6 +5,9 @@ body{
     position: relative;
     margin:0;
 }
+canvas{
+    position: absolute;
+}
 #world-box{
     position: relative;
     width: 75vw;
@@ -15,14 +18,8 @@ body{
     border: 2px solid #aaa;
 }
 #world-view{
-    transition: all 400ms linear;
+    transition: all 400ms ease;
 }
 .player{
     transition: all 150ms ease-in-out;
-}
-#debug-box{
-    width: 10px;
-    height: 10px;
-    background-color: red;
-    position: absolute;
 }
