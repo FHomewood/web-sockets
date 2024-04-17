@@ -112,12 +112,30 @@ document.addEventListener('keyup', function (event) {
 
 document.getElementById('world-box').addEventListener('click', function (event) {
     const box = document.getElementById('world-box');
-    clickCoordX = Math.floor(pos.x + (event.pageX - box.clientWidth / 2) / gridSize);
-    clickCoordY = Math.floor(pos.y + (event.pageY - box.clientHeight / 2) / gridSize);
-    wall_map[clickCoordX][clickCoordY] += 1;
-    console.log(clickCoordX, clickCoordY)
-
+    clickCoordX = Math.floor(pos.x + (event.pageX -2 - box.clientWidth / 2) / gridSize);
+    clickCoordY = Math.floor(pos.y + (event.pageY -2 - box.clientHeight / 2) / gridSize);
+    wall_map[clickCoordX][clickCoordY]++;
 })
+document.getElementById('world-box').addEventListener('mouseenter', function (event) {
+    const highlight = document.getElementById('highlight-box');
+    highlight.style.display = ''
+    highlight.style.width = `${gridSize}px`;
+    highlight.style.height = `${gridSize}px`;
+})
+document.getElementById('world-box').addEventListener('mousemove', function (event) {
+    const box = document.getElementById('world-box');
+    const highlight = document.getElementById('highlight-box');
+    clickCoordX = Math.floor(pos.x + (event.pageX -2 - box.clientWidth / 2) / gridSize);
+    clickCoordY = Math.floor(pos.y + (event.pageY -2 - box.clientHeight / 2) / gridSize);
+
+    highlight.style.left = `${clickCoordX * gridSize}px`;
+    highlight.style.top = `${clickCoordY * gridSize}px`;
+})
+document.getElementById('world-box').addEventListener('mouseleave', function (event) {
+    const highlight = document.getElementById('highlight-box');
+    highlight.style.display = 'none';
+})
+
 function noiseMap(w,h){
     array = [];
     for (let i = 0; i < w; i++){

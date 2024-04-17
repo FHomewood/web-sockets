@@ -20,6 +20,11 @@ canvas{
 #world-view{
     transition: all 400ms ease;
 }
+#highlight-box{
+    position: absolute;
+    border: 1px solid rgb(141, 103, 46);
+    
+}
 .player{
     transition: all 150ms ease-in-out;
 }
