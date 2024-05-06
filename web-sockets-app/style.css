@@ -19,10 +19,12 @@ canvas{
 }
 #world-view{
     transition: all 400ms ease;
+    transform: scale();
 }
 #highlight-box{
     position: absolute;
     border: 1px solid rgb(141, 103, 46);
+    transition: all 150ms linear;
     
 }
 .player{

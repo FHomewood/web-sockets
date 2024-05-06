@@ -1,13 +1,14 @@
 function connect(ip, port) {
     socket = new WebSocket(`ws://${ip}:${port}`);
 
-    socket.addEventListener("open", (event)=>{
+    socket.addEventListener("open", (event) => {
         function informServer() {
             socket.send(JSON.stringify({ message_code: 'PLAYER_LOC', client_id: id, pos: pos }));
-            socket.send(JSON.stringify({ message_code: 'WALL_REQUEST', client_id: id, wall_map: wall_map}))
+            socket.send(JSON.stringify({ message_code: 'WALL_REQUEST', client_id: id, wall_map: wall_map }));
+            socket.send(JSON.stringify({ message_code: 'STRUCTURE_REQUEST', client_id: id, structure_map: structure_map }));
         }
-    
-        function loop(){
+
+        function loop() {
             update()
             informServer()
             setTimeout(loop, 10)
@@ -24,17 +25,23 @@ function connect(ip, port) {
                 const worldY = dict.world_map.length;
                 world_map = dict.world_map;
                 wall_map = dict.wall_map;
-                r_noise = noiseMap(worldX,worldY);
-                g_noise = noiseMap(worldX,worldY);
-                b_noise = noiseMap(worldX,worldY);
-                pos = { 
-                    x: Math.round(world_map[0].length / 2), 
-                    y: Math.round(world_map.length / 2) 
+                structure_map = dict.structure_map;
+                r_noise = noiseMap(worldX, worldY);
+                g_noise = noiseMap(worldX, worldY);
+                b_noise = noiseMap(worldX, worldY);
+                pos = {
+                    x: Math.round(world_map[0].length / 2),
+                    y: Math.round(world_map.length / 2)
                 }
                 let wall_canv = document.getElementById('wall-canvas')
-                wall_canv.width = dict.wall_map[0].length * gridSize;
-                wall_canv.height = dict.wall_map.length * gridSize;
+                wall_canv.width = dict.wall_map[0].length * gridSize * canvas_resolution;
+                wall_canv.height = dict.wall_map.length * gridSize * canvas_resolution;
+                let structure_canv = document.getElementById('structure-canvas')
+                structure_canv.width = dict.structure_map[0].length * gridSize * canvas_resolution;
+                structure_canv.height = dict.structure_map.length * gridSize * canvas_resolution;
                 drawWorld(dict.world_map);
+                drawWalls(wall_map);
+                drawStructures(structure_map);
                 break;
             case 'PLAYERS_UPDATE':
                 let new_dwarves = {}
@@ -55,7 +62,9 @@ function connect(ip, port) {
                 break;
             case 'WALLS_UPDATE':
                 wall_map = dict.wall_map;
-                drawWalls(dict.wall_map);
+                break;
+            case 'STRUCTURES_UPDATE':
+                structure_map = dict.structure_map;
                 break;
         }
     };
@@ -72,12 +81,14 @@ let socket = undefined;
 let id = undefined;
 let world_map = undefined;
 let wall_map = undefined;
+let structure_map = undefined;
 
 let r_noise = undefined;
 let b_noise = undefined;
 let g_noise = undefined;
 
-let gridSize = 14;
+let gridSize = 15;
+let canvas_resolution = 20;
 
 let pos = { x: 0, y: 0 };
 let rot = 45;
@@ -114,8 +125,8 @@ document.getElementById('world-box').addEventListener('click', function (event) 
     const box = document.getElementById('world-box');
     clickCoordX = Math.floor(pos.x + (event.pageX - box.clientWidth / 2) / gridSize);
     clickCoordY = Math.floor(pos.y + (event.pageY - box.clientHeight / 2) / gridSize);
-    wall_map[clickCoordX][clickCoordY]++;
-    socket.send(JSON.stringify({ message_code: 'WALL_UPDATE', client_id: id, wall_map: wall_map}))
+    structure_map[clickCoordX][clickCoordY]++;
+    socket.send(JSON.stringify({ message_code: 'STRUCTURE_UPDATE', client_id: id, structure_map: structure_map }))
 })
 document.getElementById('world-box').addEventListener('mouseenter', function (event) {
     const highlight = document.getElementById('highlight-box');
@@ -128,6 +139,7 @@ document.getElementById('world-box').addEventListener('mousemove', function (eve
     const highlight = document.getElementById('highlight-box');
     clickCoordX = Math.floor(pos.x + (event.pageX - box.clientWidth / 2) / gridSize);
     clickCoordY = Math.floor(pos.y + (event.pageY - box.clientHeight / 2) / gridSize);
+    
 
     highlight.style.left = `${clickCoordX * gridSize}px`;
     highlight.style.top = `${clickCoordY * gridSize}px`;
@@ -137,11 +149,11 @@ document.getElementById('world-box').addEventListener('mouseleave', function (ev
     highlight.style.display = 'none';
 })
 
-function noiseMap(w,h){
+function noiseMap(w, h) {
     array = [];
-    for (let i = 0; i < w; i++){
+    for (let i = 0; i < w; i++) {
         array.push([])
-        for (let j = 0; j < h; j++){
+        for (let j = 0; j < h; j++) {
             array[i].push(Math.random())
         }
     }
@@ -169,7 +181,26 @@ function drawDwarves() {
         d_el.style.borderRadius = "100%";
         document.getElementById('dwarf-container').appendChild(d_el)
     }
+}
 
+function drawStructures(mapArray) {
+    if (typeof mapArray == 'undefined') return;
+    const canv = document.getElementById('wall-canvas');
+    const ctx = canv.getContext('2d');
+    ctx.font = `${gridSize * canvas_resolution}px sans-serif`;
+    for (let i = 0; i < mapArray[0].length; i++) {
+        for (let j = 0; j < mapArray.length; j++) {
+            drawStructureTile(ctx, mapArray[i][j], i, j)
+        }
+    }
+}
+
+function drawStructureTile(context, val, i, j) {
+    switch (val) {
+        case 0: break;
+        case 1: drawChar(context, i, j, '%', r = 80, g = 60, b = 60); break;
+        case 2: drawChar(context, i, j, '#', r = 100, g = 60, b = 60); break;
+    }
 }
 
 function drawWalls(mapArray) {
@@ -183,53 +214,77 @@ function drawWalls(mapArray) {
     }
 }
 
-function drawWallTile(context, val, i, j){
-    switch (val){
-        case 0:   break;
-        case 1:  drawRect(context,i,j,r = 80, g = 80, b = 80 + 6 * b_noise[i][j]); break;
-        case 2:  drawRect(context,i,j,r = 100, g = 100, b = 100 + 6 * b_noise[i][j]); break;
-        default: drawRect(context,i,j,r = 120, g = 120, b = 120 + 6 * b_noise[i][j]); break;
+function drawWallTile(context, val, i, j) {
+    switch (val) {
+        case 0: break;
+        case 1: drawRect(context, i, j, r = 80, g = 80, b = 80 + 6 * b_noise[i][j]); break;
+        case 2: drawRect(context, i, j, r = 100, g = 100, b = 100 + 6 * b_noise[i][j]); break;
+        default: drawRect(context, i, j, r = 120, g = 120, b = 120 + 6 * b_noise[i][j]); break;
     }
 }
 
 function drawWorld(mapArray) {
     if (typeof mapArray == 'undefined') return;
-    const canv = document.createElement('canvas');
-    canv.width = mapArray[0].length * gridSize;
-    canv.height= mapArray.length * gridSize;
+    const canv = document.getElementById('world-canvas')
+    canv.width = mapArray[0].length * gridSize * canvas_resolution;
+    canv.height = mapArray.length * gridSize * canvas_resolution;
     const ctx = canv.getContext('2d');
     for (let i = 0; i < mapArray.length; i++) {
         for (let j = 0; j < mapArray[i].length; j++) {
             drawWorldTile(ctx, mapArray[i][j], i, j);
         }
     }
-    document.getElementById('world-container').appendChild(canv);
 }
 
 function drawWorldTile(context, val, i, j) {
     switch (val) {
-        case 0: drawRect(context,i,j,r = 80, g = 140 + 12 * g_noise[i][j], b = 80 + 6 * b_noise[i][j]); break;
-        case 1: drawRect(context,i,j,r = 140 + 4 * r_noise[i][j], g = 140 + 4 * g_noise[i][j], b = 80); break;
-        case 2: drawRect(context,i,j,r = 100 + 3 * r_noise[i][j], g = 120 + 10 * g_noise[i][j], b = 180); break;
-        case 3: drawRect(context,i,j,r = 80 + 3 * r_noise[i][j], g = 80 + 10 * g_noise[i][j], b = 140); break;
+        case 0: drawRect(context, i, j, r = 80, g = 140 + 12 * g_noise[i][j], b = 80 + 6 * b_noise[i][j]); break;
+        case 1: drawRect(context, i, j, r = 140 + 4 * r_noise[i][j], g = 140 + 4 * g_noise[i][j], b = 80); break;
+        case 2: drawRect(context, i, j, r = 100 + 3 * r_noise[i][j], g = 120 + 10 * g_noise[i][j], b = 180); break;
+        case 3: drawRect(context, i, j, r = 80 + 3 * r_noise[i][j], g = 80 + 10 * g_noise[i][j], b = 140); break;
     }
     return context;
 }
-function drawRect(canvas,i,j,r,g,b) {
+function drawRect(canvas, i, j, r, g, b) {
     canvas.fillStyle = `rgba(${r}, ${g}, ${b}, 1)`;
-    canvas.fillRect(i*gridSize,j*gridSize,gridSize,gridSize)
-    
+    canvas.fillRect(
+        i * gridSize * canvas_resolution,
+        j * gridSize * canvas_resolution,
+        gridSize * canvas_resolution,
+        gridSize * canvas_resolution
+    )
 }
-function update() {
-    let worldView = document.getElementById('world-view')
+function drawChar(canvas, i, j, char, r, g, b) {
+    canvas.fillText(char, i * gridSize * canvas_resolution, j * gridSize * canvas_resolution);
+    canvas.fillStyle = `rgba(${r}, ${g}, ${b}, 1)`;
+}
+
+function updateUI() {
+    let worldView = document.getElementById('world-view');
+    let worldCanvas = document.getElementById('world-canvas');
     let box = document.getElementById('world-box');
+    let canvs = document.getElementsByTagName('canvas');
+    for (let i = 0; i < canvs.length; i++) {
+        canv = canvs[i]
+        canv.style.width =  `${world_map[0].length * gridSize}px`;
+        canv.style.height =  `${world_map.length * gridSize}px`;
+    }
+    
+    worldView.style.transform = `Translate(
+        ${- pos.x * gridSize + box.clientWidth / 2}px,
+        ${- pos.y * gridSize + box.clientHeight / 2}px
+    )`
+}
 
-    worldView.style.transform = `Translate(${-pos.x * gridSize + box.clientWidth / 2}px, ${-pos.y * gridSize + box.clientHeight / 2}px)`
-
+function update() {
+    if (typeof id == 'undefined') return;
+    updateUI();
+    let worldCanvas = document.getElementById('world-canvas');
     el.style.left = `${pos.x * gridSize}px`;
     el.style.top = `${pos.y * gridSize}px`;
-    el.style.transform = `rotate(${rot}deg)`
+    el.style.transform = `rotate(${rot}deg)`;
 
     drawDwarves();
-    drawWalls(wall_map);
+    // drawWalls(wall_map);
+    // drawStructures(structure_map);
 }

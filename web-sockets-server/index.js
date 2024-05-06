@@ -20,7 +20,8 @@ server.on('connection', socket => {
             message_code: 'NEW_CLIENT',
             assigned_id: players[players.length-1].id,
             world_map: world_map,
-            wall_map: wall_map
+            wall_map: wall_map,
+            structure_map: structure_map
         }));
     
     console.log('| SERVER |', `${players.length} open connections`)
@@ -31,6 +32,8 @@ server.on('connection', socket => {
             case 'PLAYER_LOC': clientPlayerLocationEvent(socket, data); break;
             case 'WALL_REQUEST': clientWallRequestEvent(socket, data); break;
             case 'WALL_UPDATE': clientWallUpdateEvent(socket, data); break;
+            case 'STRUCTURE_REQUEST': clientStructureRequestEvent(socket, data); break;
+            case 'STRUCTURE_UPDATE': clientStructureUpdateEvent(socket, data); break;
         
             default:
                 break;
@@ -60,7 +63,6 @@ function getPlayerIndex(id){
 }
 
 function clientExitEvent(socket, data){
-    console.log(`\n| TERM ${data.client_id} |`, data);
     players.splice(getPlayerIndex(data.client_id), 1);
     console.log('| SERVER |', `${players.length} open connections`);
 }
@@ -79,6 +81,13 @@ function clientWallRequestEvent(socket, data){
 
 function clientWallUpdateEvent(socket, data){
     wall_map = data.wall_map
+}
+function clientStructureRequestEvent(socket, data){
+    socket.send(JSON.stringify({message_code: 'STRUCTURES_UPDATE', structure_map: structure_map}));
+}
+
+function clientStructureUpdateEvent(socket, data){
+    structure_map = data.structure_map
 }
 
 function buildEmptyMap(width, height){
